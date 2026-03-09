@@ -1,22 +1,32 @@
 package co.edu.unicauca.api_rest_mcs_registro.capaAccesoADatos.models;
 
-import java.util.ArrayList;
+import java.sql.Date;
+import java.util.List;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 @Data
-public class FormatoAEntity_PP extends FormatoAEntity{
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+public class FormatoAEntity_PP extends FormatoAEntity {
 
     private String nombreEstudiante;
     private Integer codigoEstudiante;
     private String asesorOrganizacion;
     private boolean tieneCartaAceptacion;
+
+    public FormatoAEntity_PP(Integer id, String titulo, String directorTrabajo, String objetivoGeneral,
+            List<String> objetivosEspecificos, Date fechaCreacion,  String nombreEstudiante, Integer codigoEstudiante, 
+            String asesorOrganizacion, boolean tieneCartaAceptacion) {
+        
     
-
-    public FormatoAEntity_PP(String titulo, String directorTrabajo, String objetivoGeneral,
-            ArrayList<String> objetivosEspecificos) {
-        super(titulo, directorTrabajo, objetivoGeneral, objetivosEspecificos);
-        //TODO Auto-generated constructor stub
+        super(id, titulo, directorTrabajo, objetivoGeneral, objetivosEspecificos, fechaCreacion);
+        
+        this.nombreEstudiante = nombreEstudiante;
+        this.codigoEstudiante = codigoEstudiante;
+        this.asesorOrganizacion = asesorOrganizacion;
+        this.tieneCartaAceptacion = tieneCartaAceptacion;
     }
-
 }

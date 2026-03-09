@@ -1,4 +1,4 @@
-package co.edu.unicauca.api_rest_mcs_registro.fachadaService.DTO.Request;
+package co.edu.unicauca.api_rest_mcs_registro.fachadaService.DTO.Response;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class FormatoADTO_PP_Request extends FormatoADTO_Request {
+public class FormatoADTO_PP_Response extends FormatoADTO_Response {
 
     private String nombreEstudiante;
     private Integer codigoEstudiante;
