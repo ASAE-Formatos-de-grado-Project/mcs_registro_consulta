@@ -46,11 +46,11 @@ public class FormatoAServiceImpl implements IFormatoAService {
             // Asignamos la fecha de creación del sistema
             entity.setFechaCreacion(new Date());
             
-            // 2. Guardamos en la Base de Datos
+            // Guardar en base de datos
             FormatoAEntity entityGuardada = this.servicioAccesoBaseDatos.save(entity);
 
-            // TODO: Aquí deberás publicar el mensaje en RabbitMQ para notificar al Microservicio 2
-            // ej: rabbitTemplate.convertAndSend("formatos.exchange", "formato.creado", entityGuardada.getId());
+            // Publicar el mensaje en RABBIT 
+            
 
             // 3. Mapeo Polimórfico inverso (Entity -> Response DTO)
             return mapearAResponse(entityGuardada);
@@ -66,21 +66,14 @@ public class FormatoAServiceImpl implements IFormatoAService {
         if (optionalFormato.isPresent()) {
             return mapearAResponse(optionalFormato.get());
         }
-        return null; // El controlador deberá manejar este null para retornar un 404 Not Found
+        return null; 
     }
 
     @Override
     public List<FormatoADTO_Response> findAll(Date fechaInicio, Date fechaFin) {
         List<FormatoADTO_Response> listaRetornar = new ArrayList<>();
         
-        // Asumiendo que crearás un método findAll en tu FormatoARepository
-        // Optional<List<FormatoAEntity>> entidadesOpt = this.servicioAccesoBaseDatos.findAll(fechaInicio, fechaFin);
-        
-        /* if (entidadesOpt.isPresent()) {
-            for (FormatoAEntity entity : entidadesOpt.get()) {
-                listaRetornar.add(mapearAResponse(entity));
-            }
-        } */
+    // TO DO
         
         return listaRetornar;
     }

@@ -36,7 +36,7 @@ public class FormatoARestController {
         return formatoService.findAll(fechaInicio, fechaFin);
     }
 
-    // 2. Consultar un formato A con pathvariable
+    // 2. Consultar un formato A (utilice pathvariable)
     @GetMapping("/formatos/{id}")
     public FormatoADTO_Response consultarFormato(@PathVariable Integer id) {
         FormatoADTO_Response objFormato = null;
