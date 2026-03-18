@@ -1,6 +1,6 @@
 package co.edu.unicauca.api_rest_mcs_registro.capaAccesoADatos.models;
 
-import java.sql.Date;
+import java.util.Date;
 import java.util.List;
 
 import lombok.Data;
