@@ -10,7 +10,7 @@ public class ConexionBD {
     public void conectar() {
         try {
             Class.forName("org.h2.Driver");
-            connection = DriverManager.getConnection("jdbc:h2:mem:testdb", "sa", "");
+            connection = DriverManager.getConnection("jdbc:h2:mem:testregistro", "sa", "");
         } catch (Exception e) {
             e.printStackTrace();
         }
