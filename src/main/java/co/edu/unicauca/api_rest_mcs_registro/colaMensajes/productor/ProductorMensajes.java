@@ -1,5 +1,6 @@
 package co.edu.unicauca.api_rest_mcs_registro.colaMensajes.productor;
 
+import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,12 @@ public class ProductorMensajes {
      * (Fire and forget).
      */
     public void enviarFormatoCreado(FormatoADTO_Response formato) {
-        System.out.println("Enviando formato ID: " + formato.getId() + " al microservicio de evaluación mediante la cola");
-        amqpTemplate.convertAndSend(exchange, routingKey, formato);
+        System.out.println("Enviando formato ID: " + formato.getId());
+
+        amqpTemplate.convertAndSend(exchange, routingKey, formato, message -> {
+            message.getMessageProperties()
+                    .setDeliveryMode(MessageDeliveryMode.PERSISTENT); //  sobrevive reinicio de RabbitMQ
+            return message;
+        });
     }
 }
