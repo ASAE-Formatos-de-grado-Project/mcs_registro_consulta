@@ -156,6 +156,7 @@ public class FormatoARepository {
                 formato.setTitulo(rs.getString("titulo"));
                 formato.setDirectorTrabajo(rs.getString("director_trabajo"));
                 formato.setObjetivoGeneral(rs.getString("objetivo_general"));
+                formato.setEstadoActual(rs.getString("estado_actual"));
 
                 // 2. Consultar y cargar los objetivos específicos
                 String sqlObj = "SELECT objetivo FROM objetivos WHERE formato_id = ?";
@@ -179,5 +180,106 @@ public class FormatoARepository {
         }
 
         return Optional.ofNullable(formato);
+    }
+
+    public List<FormatoAEntity> findAll(String tipo) {
+        List<FormatoAEntity> formatos = new ArrayList<>();
+        try {
+            conexionABaseDeDatos.conectar();
+            Connection conn = conexionABaseDeDatos.getConnection();
+
+            // Consulta base con JOIN a ambas tablas hijas
+            StringBuilder sql = new StringBuilder(
+                    "SELECT f.*, " +
+                            "ti.nombre_estudiante1, ti.nombre_estudiante2, ti.codigo_estudiante1, ti.codigo_estudiante2, " +
+                            "pp.nombre_estudiante, pp.codigo_estudiante, pp.asesor_organizacion, pp.tiene_carta_aceptacion " +
+                            "FROM formatos f " +
+                            "LEFT JOIN formatos_ti ti ON f.id = ti.formato_id " +
+                            "LEFT JOIN formatos_pp pp ON f.id = pp.formato_id"
+            );
+
+            // Condicional dinámica para el filtro opcional
+            boolean filtrarPorTipo = (tipo != null && !tipo.trim().isEmpty());
+            if (filtrarPorTipo) {
+                sql.append(" WHERE f.tipo_formato = ?");
+            }
+
+            PreparedStatement pstmt = conn.prepareStatement(sql.toString());
+
+            if (filtrarPorTipo) {
+                pstmt.setString(1, tipo.toUpperCase());
+            }
+
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                FormatoAEntity formato;
+                String tipoFormato = rs.getString("tipo_formato");
+
+                // Reconstrucción polimórfica según el discriminador
+                if ("TI".equals(tipoFormato)) {
+                    FormatoAEntity_TI ti = new FormatoAEntity_TI();
+                    ti.setNombreEstudiante1(rs.getString("nombre_estudiante1"));
+                    ti.setNombreEstudiante2(rs.getString("nombre_estudiante2"));
+                    ti.setCodigoEstudiante1(rs.getObject("codigo_estudiante1", Integer.class));
+                    ti.setCodigoEstudiante2(rs.getObject("codigo_estudiante2", Integer.class));
+                    formato = ti;
+                } else {
+                    FormatoAEntity_PP pp = new FormatoAEntity_PP();
+                    pp.setNombreEstudiante(rs.getString("nombre_estudiante"));
+                    pp.setCodigoEstudiante(rs.getObject("codigo_estudiante", Integer.class));
+                    pp.setAsesorOrganizacion(rs.getString("asesor_organizacion"));
+                    pp.setTieneCartaAceptacion(rs.getBoolean("tiene_carta_aceptacion"));
+                    formato = pp;
+                }
+
+                // Mapeo de atributos comunes del padre
+                formato.setId(rs.getInt("id"));
+                formato.setFechaCreacion(rs.getDate("fecha_creacion"));
+                formato.setTitulo(rs.getString("titulo"));
+                formato.setDirectorTrabajo(rs.getString("director_trabajo"));
+                formato.setObjetivoGeneral(rs.getString("objetivo_general"));
+                formato.setEstadoActual(rs.getString("estado_actual"));
+
+                // Subconsulta para cargar los objetivos específicos asociados al formato actual
+                String sqlObj = "SELECT objetivo FROM objetivos WHERE formato_id = ?";
+                PreparedStatement pstmtObj = conn.prepareStatement(sqlObj);
+                pstmtObj.setInt(1, formato.getId());
+                ResultSet rsObj = pstmtObj.executeQuery();
+
+                List<String> objetivos = new ArrayList<>();
+                while(rsObj.next()){
+                    objetivos.add(rsObj.getString("objetivo"));
+                }
+                formato.setObjetivosEspecificos(objetivos);
+                pstmtObj.close();
+
+                formatos.add(formato);
+            }
+            pstmt.close();
+            conexionABaseDeDatos.desconectar();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return formatos;
+    }
+
+    public boolean actualizarEstado(Integer idFormato, String nuevoEstado) {
+        boolean actualizado = false;
+        try {
+            conexionABaseDeDatos.conectar();
+            Connection conn = conexionABaseDeDatos.getConnection();
+            String sql = "UPDATE formatos SET estado_actual = ? WHERE id = ?";
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, nuevoEstado);
+            pstmt.setInt(2, idFormato);
+            actualizado = pstmt.executeUpdate() > 0;
+            pstmt.close();
+            conexionABaseDeDatos.desconectar();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return actualizado;
     }
 }

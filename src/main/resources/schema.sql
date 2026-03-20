@@ -10,7 +10,8 @@ CREATE TABLE formatos (
     fecha_creacion DATE NOT NULL,
     titulo VARCHAR(255),
     director_trabajo VARCHAR(255),
-    objetivo_general VARCHAR(255)
+    objetivo_general VARCHAR(255),
+    estado_actual VARCHAR(50) DEFAULT 'EN_FORMULACION'
 );
 
 CREATE TABLE formatos_ti (

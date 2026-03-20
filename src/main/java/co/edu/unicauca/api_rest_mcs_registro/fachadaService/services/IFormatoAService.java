@@ -8,7 +8,7 @@ import co.edu.unicauca.api_rest_mcs_registro.fachadaService.DTO.Response.Formato
 
 public interface IFormatoAService {
 
-    public List<FormatoADTO_Response> findAll(Date fechaInicio, Date fechaFin);
+    List<FormatoADTO_Response> findAll(String tipo);
 
     public FormatoADTO_Response findById(Integer id);
 

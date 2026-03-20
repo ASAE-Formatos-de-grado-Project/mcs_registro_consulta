@@ -11,11 +11,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public abstract class FormatoADTO_Response {
     
-    private Integer id; // ¡La gran diferencia! Aquí va el ID generado por tu base de datos
-    private String tipoFormato; // Útil para que el front sepa si es PP o TI
+    private Integer id;
+    private String tipoFormato;
     private String titulo;
     private String directorTrabajo;
     private String objetivoGeneral;
     private List<String> objetivosEspecificos;
+    private String estadoActual;
 
 }

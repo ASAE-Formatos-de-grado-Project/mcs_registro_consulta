@@ -16,15 +16,4 @@ public class FormatoAEntity_TI extends FormatoAEntity {
     private Integer codigoEstudiante1;
     private Integer codigoEstudiante2;
 
-    public FormatoAEntity_TI(Integer id, String titulo, String directorTrabajo, String objetivoGeneral,
-            List<String> objetivosEspecificos, Date fechaCreacion, String nombreEstudiante1, String nombreEstudiante2, 
-            Integer codigoEstudiante1, Integer codigoEstudiante2) {
-        
-        super(id, titulo, directorTrabajo, objetivoGeneral, objetivosEspecificos, fechaCreacion);
-        
-        this.nombreEstudiante1 = nombreEstudiante1;
-        this.nombreEstudiante2 = nombreEstudiante2;
-        this.codigoEstudiante1 = codigoEstudiante1;
-        this.codigoEstudiante2 = codigoEstudiante2;
-    }
 }

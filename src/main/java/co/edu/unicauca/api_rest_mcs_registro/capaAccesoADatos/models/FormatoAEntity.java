@@ -7,7 +7,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 @Data
-@AllArgsConstructor
 @NoArgsConstructor 
 public class FormatoAEntity {
     
@@ -16,7 +15,8 @@ public class FormatoAEntity {
     private String directorTrabajo;
     private String objetivoGeneral;
     private List<String> objetivosEspecificos;
-    private Date fechaCreacion; 
+    private Date fechaCreacion;
+    private String estadoActual;
 
 }
 //INVESTIGAR COMO SE HACE PARA HACER LA DESEREALIZACION DE JSON A UN PP O TI

@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,13 +28,11 @@ public class FormatoARestController {
     @Autowired // Inyectando la fachada tal como en el ejemplo del profe
     private IFormatoAService formatoService;
 
-    // 1. Listar los formatos A registrados (utilice requestParam opcional)
     @GetMapping("/formatos")
-    public List<FormatoADTO_Response> listarFormatos(
-            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date fechaInicio,
-            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date fechaFin) {
-        
-        return formatoService.findAll(fechaInicio, fechaFin);
+    public List<FormatoADTO_Response> listarFormatos(@RequestParam(required = false) String tipo) {
+        List<FormatoADTO_Response> listaFormatos = null;
+        listaFormatos = formatoService.findAll(tipo);
+        return listaFormatos;
     }
 
     // 2. Consultar un formato A (utilice pathvariable)
@@ -51,5 +50,6 @@ public class FormatoARestController {
         objFormato = formatoService.save(formato);
         return objFormato;
     }
+
 
 }

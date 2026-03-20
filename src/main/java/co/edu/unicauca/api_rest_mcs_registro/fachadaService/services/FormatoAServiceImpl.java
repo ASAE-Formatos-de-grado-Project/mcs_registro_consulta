@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+import co.edu.unicauca.api_rest_mcs_registro.colaMensajes.productor.ProductorMensajes;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
@@ -24,11 +25,13 @@ public class FormatoAServiceImpl implements IFormatoAService {
 
     private final FormatoARepository servicioAccesoBaseDatos;
     private final ModelMapper modelMapper;
+    private final ProductorMensajes productorMensajes;
 
     // Inyección de dependencias por constructor
-    public FormatoAServiceImpl(FormatoARepository servicioAccesoBaseDatos, ModelMapper modelMapper) {
+    public FormatoAServiceImpl(FormatoARepository servicioAccesoBaseDatos, ModelMapper modelMapper, ProductorMensajes productorMensajes) {
         this.servicioAccesoBaseDatos = servicioAccesoBaseDatos;
         this.modelMapper = modelMapper;
+        this.productorMensajes = productorMensajes;
     }
 
     @Override
@@ -43,19 +46,23 @@ public class FormatoAServiceImpl implements IFormatoAService {
         }
 
         if (entity != null) {
-            // Asignamos la fecha de creación del sistema
+            // 2. Asignar la fecha de creación actual del sistema
             entity.setFechaCreacion(new Date());
-            
-            // Guardar en base de datos
+
+            // 3. Persistir en la base de datos (H2)
             FormatoAEntity entityGuardada = this.servicioAccesoBaseDatos.save(entity);
 
-            // Publicar el mensaje en RABBIT 
-            
+            // 4. Mapeo Polimórfico inverso (Entity -> Response DTO) usando método auxiliar
+            FormatoADTO_Response response = mapearAResponse(entityGuardada);
 
-            // 3. Mapeo Polimórfico inverso (Entity -> Response DTO)
-            return mapearAResponse(entityGuardada);
+            // 5. Publicar el mensaje en la cola de RabbitMQ asíncronamente
+            if (response != null && this.productorMensajes != null) {
+                this.productorMensajes.enviarFormatoCreado(response);
+            }
+
+            return response;
         }
-        
+
         return null;
     }
 
@@ -70,12 +77,19 @@ public class FormatoAServiceImpl implements IFormatoAService {
     }
 
     @Override
-    public List<FormatoADTO_Response> findAll(Date fechaInicio, Date fechaFin) {
-        List<FormatoADTO_Response> listaRetornar = new ArrayList<>();
-        
-    // TO DO
-        
-        return listaRetornar;
+    public List<FormatoADTO_Response> findAll(String tipo) {
+        List<FormatoAEntity> entidades = this.servicioAccesoBaseDatos.findAll(tipo);
+        List<FormatoADTO_Response> dtos = new ArrayList<>();
+
+        for (FormatoAEntity entidad : entidades) {
+            // Se reutiliza el método auxiliar para asegurar que se asigne "PP" o "TI"
+            FormatoADTO_Response dto = mapearAResponse(entidad);
+            if (dto != null) {
+                dtos.add(dto);
+            }
+        }
+
+        return dtos;
     }
 
     /**
