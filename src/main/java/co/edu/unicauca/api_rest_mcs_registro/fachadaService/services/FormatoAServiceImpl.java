@@ -27,7 +27,7 @@ public class FormatoAServiceImpl implements IFormatoAService {
     private final ModelMapper modelMapper;
     private final ProductorMensajes productorMensajes;
 
-    // Inyección de dependencias por constructor
+
     public FormatoAServiceImpl(FormatoARepository servicioAccesoBaseDatos, ModelMapper modelMapper, ProductorMensajes productorMensajes) {
         this.servicioAccesoBaseDatos = servicioAccesoBaseDatos;
         this.modelMapper = modelMapper;
@@ -38,7 +38,7 @@ public class FormatoAServiceImpl implements IFormatoAService {
     public FormatoADTO_Response save(FormatoADTO_Request formatoRequest) {
         FormatoAEntity entity = null;
 
-        // 1. Mapeo Polimórfico (Request DTO -> Entity)
+        // 1. Mapeo Request DTO a Entity
         if (formatoRequest instanceof FormatoADTO_PP_Request) {
             entity = this.modelMapper.map(formatoRequest, FormatoAEntity_PP.class);
         } else if (formatoRequest instanceof FormatoADTO_TI_Request) {
@@ -49,10 +49,10 @@ public class FormatoAServiceImpl implements IFormatoAService {
             // 2. Asignar la fecha de creación actual del sistema
             entity.setFechaCreacion(new Date());
 
-            // 3. Persistir en la base de datos (H2)
+            // 3. Persistir en la base de datos
             FormatoAEntity entityGuardada = this.servicioAccesoBaseDatos.save(entity);
 
-            // 4. Mapeo Polimórfico inverso (Entity -> Response DTO) usando método auxiliar
+            // 4. Mapeo inverso Entity a Response DTO
             FormatoADTO_Response response = mapearAResponse(entityGuardada);
 
             // 5. Publicar el mensaje en la cola de RabbitMQ asíncronamente
@@ -77,25 +77,34 @@ public class FormatoAServiceImpl implements IFormatoAService {
     }
 
     @Override
-    public List<FormatoADTO_Response> findAll(String tipo) {
-        List<FormatoAEntity> entidades = this.servicioAccesoBaseDatos.findAll(tipo);
+    public List<FormatoADTO_Response> findAll() {
+        List<FormatoAEntity> entidades = this.servicioAccesoBaseDatos.findAll();
         List<FormatoADTO_Response> dtos = new ArrayList<>();
 
         for (FormatoAEntity entidad : entidades) {
-            // Se reutiliza el método auxiliar para asegurar que se asigne "PP" o "TI"
             FormatoADTO_Response dto = mapearAResponse(entidad);
             if (dto != null) {
                 dtos.add(dto);
             }
         }
-
         return dtos;
     }
 
-    /**
-     * Método auxiliar privado para resolver el polimorfismo al devolver la respuesta.
-     * Evita duplicar código en save, findById y findAll.
-     */
+    @Override
+    public List<FormatoADTO_Response> findByRangoFechas(Date fechaInicio, Date fechaFin) {
+        List<FormatoAEntity> entidades = this.servicioAccesoBaseDatos.findByRangoFechas(fechaInicio, fechaFin);
+        List<FormatoADTO_Response> dtos = new ArrayList<>();
+
+        for (FormatoAEntity entidad : entidades) {
+            FormatoADTO_Response dto = mapearAResponse(entidad);
+            if (dto != null) {
+                dtos.add(dto);
+            }
+        }
+        return dtos;
+    }
+
+    //Método auxiliar privado para resolver el polimorfismo al devolver la respuesta.
     private FormatoADTO_Response mapearAResponse(FormatoAEntity entity) {
         if (entity instanceof FormatoAEntity_PP) {
             FormatoADTO_PP_Response dto = this.modelMapper.map(entity, FormatoADTO_PP_Response.class);
@@ -108,4 +117,6 @@ public class FormatoAServiceImpl implements IFormatoAService {
         }
         return null;
     }
+
+
 }

@@ -19,4 +19,3 @@ public class FormatoAEntity {
     private String estadoActual;
 
 }
-//INVESTIGAR COMO SE HACE PARA HACER LA DESEREALIZACION DE JSON A UN PP O TI

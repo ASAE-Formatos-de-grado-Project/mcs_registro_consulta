@@ -10,6 +10,6 @@ public class mapper {
     @Bean 
     public ModelMapper crearMapper() {
         ModelMapper objMapeador= new ModelMapper();
-        return objMapeador;//El objeto retornado se almacena en el contenedor de Spring
+        return objMapeador;
     }
 }

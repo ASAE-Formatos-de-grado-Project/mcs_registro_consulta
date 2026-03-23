@@ -25,17 +25,22 @@ import co.edu.unicauca.api_rest_mcs_registro.fachadaService.services.IFormatoASe
 @CrossOrigin(origins = "http://localhost:4200", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
 public class FormatoARestController {
 
-    @Autowired // Inyectando la fachada tal como en el ejemplo del profe
+    @Autowired
     private IFormatoAService formatoService;
 
+    // 1. Consultar formatos
     @GetMapping("/formatos")
-    public List<FormatoADTO_Response> listarFormatos(@RequestParam(required = false) String tipo) {
-        List<FormatoADTO_Response> listaFormatos = null;
-        listaFormatos = formatoService.findAll(tipo);
-        return listaFormatos;
+    public List<FormatoADTO_Response> listarFormatos(
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date fechaInicio,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date fechaFin) {
+
+        if (fechaInicio != null && fechaFin != null) {
+            return formatoService.findByRangoFechas(fechaInicio, fechaFin);
+        }
+        return formatoService.findAll();
     }
 
-    // 2. Consultar un formato A (utilice pathvariable)
+    // 2. Consultar un formato A con pathvariable)
     @GetMapping("/formatos/{id}")
     public FormatoADTO_Response consultarFormato(@PathVariable Integer id) {
         FormatoADTO_Response objFormato = null;
@@ -49,6 +54,13 @@ public class FormatoARestController {
         FormatoADTO_Response objFormato = null;
         objFormato = formatoService.save(formato);
         return objFormato;
+    }
+
+    @GetMapping("/formatos/rango")
+    public List<FormatoADTO_Response> listarPorRango(
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date fechaInicio,
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date fechaFin) {
+        return formatoService.findByRangoFechas(fechaInicio, fechaFin);
     }
 
 

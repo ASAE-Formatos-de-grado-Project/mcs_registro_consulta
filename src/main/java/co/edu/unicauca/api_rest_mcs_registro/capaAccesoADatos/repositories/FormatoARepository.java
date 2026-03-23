@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -182,41 +183,26 @@ public class FormatoARepository {
         return Optional.ofNullable(formato);
     }
 
-    public List<FormatoAEntity> findAll(String tipo) {
+    public List<FormatoAEntity> findAll() {
         List<FormatoAEntity> formatos = new ArrayList<>();
         try {
             conexionABaseDeDatos.conectar();
             Connection conn = conexionABaseDeDatos.getConnection();
 
-            // Consulta base con JOIN a ambas tablas hijas
-            StringBuilder sql = new StringBuilder(
-                    "SELECT f.*, " +
-                            "ti.nombre_estudiante1, ti.nombre_estudiante2, ti.codigo_estudiante1, ti.codigo_estudiante2, " +
-                            "pp.nombre_estudiante, pp.codigo_estudiante, pp.asesor_organizacion, pp.tiene_carta_aceptacion " +
-                            "FROM formatos f " +
-                            "LEFT JOIN formatos_ti ti ON f.id = ti.formato_id " +
-                            "LEFT JOIN formatos_pp pp ON f.id = pp.formato_id"
-            );
+            String sql = "SELECT f.*, " +
+                    "ti.nombre_estudiante1, ti.nombre_estudiante2, ti.codigo_estudiante1, ti.codigo_estudiante2, " +
+                    "pp.nombre_estudiante, pp.codigo_estudiante, pp.asesor_organizacion, pp.tiene_carta_aceptacion " +
+                    "FROM formatos f " +
+                    "LEFT JOIN formatos_ti ti ON f.id = ti.formato_id " +
+                    "LEFT JOIN formatos_pp pp ON f.id = pp.formato_id";
 
-            // Condicional dinámica para el filtro opcional
-            boolean filtrarPorTipo = (tipo != null && !tipo.trim().isEmpty());
-            if (filtrarPorTipo) {
-                sql.append(" WHERE f.tipo_formato = ?");
-            }
-
-            PreparedStatement pstmt = conn.prepareStatement(sql.toString());
-
-            if (filtrarPorTipo) {
-                pstmt.setString(1, tipo.toUpperCase());
-            }
-
+            PreparedStatement pstmt = conn.prepareStatement(sql);
             ResultSet rs = pstmt.executeQuery();
 
             while (rs.next()) {
                 FormatoAEntity formato;
                 String tipoFormato = rs.getString("tipo_formato");
 
-                // Reconstrucción polimórfica según el discriminador
                 if ("TI".equals(tipoFormato)) {
                     FormatoAEntity_TI ti = new FormatoAEntity_TI();
                     ti.setNombreEstudiante1(rs.getString("nombre_estudiante1"));
@@ -233,7 +219,6 @@ public class FormatoARepository {
                     formato = pp;
                 }
 
-                // Mapeo de atributos comunes del padre
                 formato.setId(rs.getInt("id"));
                 formato.setFechaCreacion(rs.getDate("fecha_creacion"));
                 formato.setTitulo(rs.getString("titulo"));
@@ -241,14 +226,13 @@ public class FormatoARepository {
                 formato.setObjetivoGeneral(rs.getString("objetivo_general"));
                 formato.setEstadoActual(rs.getString("estado_actual"));
 
-                // Subconsulta para cargar los objetivos específicos asociados al formato actual
                 String sqlObj = "SELECT objetivo FROM objetivos WHERE formato_id = ?";
                 PreparedStatement pstmtObj = conn.prepareStatement(sqlObj);
                 pstmtObj.setInt(1, formato.getId());
                 ResultSet rsObj = pstmtObj.executeQuery();
 
                 List<String> objetivos = new ArrayList<>();
-                while(rsObj.next()){
+                while (rsObj.next()) {
                     objetivos.add(rsObj.getString("objetivo"));
                 }
                 formato.setObjetivosEspecificos(objetivos);
@@ -281,5 +265,75 @@ public class FormatoARepository {
             e.printStackTrace();
         }
         return actualizado;
+    }
+
+    public List<FormatoAEntity> findByRangoFechas(Date fechaInicio, Date fechaFin) {
+        List<FormatoAEntity> formatos = new ArrayList<>();
+        try {
+            conexionABaseDeDatos.conectar();
+            Connection conn = conexionABaseDeDatos.getConnection();
+
+            String sql = "SELECT f.*, " +
+                    "ti.nombre_estudiante1, ti.nombre_estudiante2, ti.codigo_estudiante1, ti.codigo_estudiante2, " +
+                    "pp.nombre_estudiante, pp.codigo_estudiante, pp.asesor_organizacion, pp.tiene_carta_aceptacion " +
+                    "FROM formatos f " +
+                    "LEFT JOIN formatos_ti ti ON f.id = ti.formato_id " +
+                    "LEFT JOIN formatos_pp pp ON f.id = pp.formato_id " +
+                    "WHERE f.fecha_creacion BETWEEN ? AND ?";
+
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setDate(1, new java.sql.Date(fechaInicio.getTime()));
+            pstmt.setDate(2, new java.sql.Date(fechaFin.getTime()));
+
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                FormatoAEntity formato;
+                String tipoFormato = rs.getString("tipo_formato");
+
+                if ("TI".equals(tipoFormato)) {
+                    FormatoAEntity_TI ti = new FormatoAEntity_TI();
+                    ti.setNombreEstudiante1(rs.getString("nombre_estudiante1"));
+                    ti.setNombreEstudiante2(rs.getString("nombre_estudiante2"));
+                    ti.setCodigoEstudiante1(rs.getObject("codigo_estudiante1", Integer.class));
+                    ti.setCodigoEstudiante2(rs.getObject("codigo_estudiante2", Integer.class));
+                    formato = ti;
+                } else {
+                    FormatoAEntity_PP pp = new FormatoAEntity_PP();
+                    pp.setNombreEstudiante(rs.getString("nombre_estudiante"));
+                    pp.setCodigoEstudiante(rs.getObject("codigo_estudiante", Integer.class));
+                    pp.setAsesorOrganizacion(rs.getString("asesor_organizacion"));
+                    pp.setTieneCartaAceptacion(rs.getBoolean("tiene_carta_aceptacion"));
+                    formato = pp;
+                }
+
+                formato.setId(rs.getInt("id"));
+                formato.setFechaCreacion(rs.getDate("fecha_creacion"));
+                formato.setTitulo(rs.getString("titulo"));
+                formato.setDirectorTrabajo(rs.getString("director_trabajo"));
+                formato.setObjetivoGeneral(rs.getString("objetivo_general"));
+                formato.setEstadoActual(rs.getString("estado_actual"));
+
+                String sqlObj = "SELECT objetivo FROM objetivos WHERE formato_id = ?";
+                PreparedStatement pstmtObj = conn.prepareStatement(sqlObj);
+                pstmtObj.setInt(1, formato.getId());
+                ResultSet rsObj = pstmtObj.executeQuery();
+
+                List<String> objetivos = new ArrayList<>();
+                while (rsObj.next()) {
+                    objetivos.add(rsObj.getString("objetivo"));
+                }
+                formato.setObjetivosEspecificos(objetivos);
+                pstmtObj.close();
+
+                formatos.add(formato);
+            }
+            pstmt.close();
+            conexionABaseDeDatos.desconectar();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return formatos;
     }
 }

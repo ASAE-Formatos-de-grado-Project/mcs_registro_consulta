@@ -1,5 +1,6 @@
 package co.edu.unicauca.api_rest_mcs_registro.fachadaService.DTO.Response;
 
+import java.util.Date;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
@@ -18,5 +19,6 @@ public abstract class FormatoADTO_Response {
     private String objetivoGeneral;
     private List<String> objetivosEspecificos;
     private String estadoActual;
+    private Date fechaCreacion;
 
 }
